@@ -1,6 +1,6 @@
-# [Project name]
+# CariKos — Platform Perbandingan Kos
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Platform untuk menemukan dan membandingkan kos di sekitar kampus di Indonesia.
 
 ## Run & Operate
 
@@ -8,7 +8,9 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- `pnpm --filter @workspace/db run push` — push DB schema to connected database
+- `pnpm --filter @workspace/db run generate` — generate SQL migration files
+- `pnpm --filter @workspace/scripts run seed` — seed the database with 15 kos + reviews
 - Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
@@ -22,15 +24,28 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/db/src/schema/` — Drizzle ORM table definitions (users, kos, fasilitas, kos_fasilitas, reviews)
+- `lib/db/src/schema/index.ts` — barrel export for all tables
+- `scripts/src/seed.ts` — seed script (15 kos fiktif + fasilitas + reviews)
+- `supabase_schema_seed.sql` — file SQL lengkap untuk dijalankan langsung di Supabase SQL Editor
+
+## Database Schema
+
+| Tabel | Keterangan |
+|---|---|
+| `users` | Role: pencari / pemilik / admin |
+| `kos` | 15 kos di area UI, ITB, UGM, ITS, Unpad. Harga 500rb–2jt |
+| `fasilitas` | 8 fasilitas: AC, Wifi, KM Dalam, Dapur, Laundry, Parkir, CCTV, Penjaga |
+| `kos_fasilitas` | Many-to-many join table |
+| `reviews` | Rating 1–5, komentar, foto, tanggal |
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Enum `user_role` di level database untuk validasi ketat peran pengguna.
+- `harga` disimpan sebagai `INTEGER` (satuan Rupiah) agar sorting dan filtering akurat.
+- `lat`/`lng` sebagai `NUMERIC(10,7)` untuk presisi koordinat GPS 7 desimal.
+- `tanggal` review menggunakan kolom `DATE` (bukan `TIMESTAMP`) karena hanya perlu hari kalender.
+- Seed script TypeScript (via Drizzle) untuk type-safety; SQL file murni juga disertakan untuk Supabase.
 
 ## User preferences
 
@@ -38,7 +53,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Jalankan `push` sebelum `seed`. Seed akan gagal jika tabel belum ada.
+- `supabase_schema_seed.sql` menggunakan urutan INSERT untuk menghitung FK secara relatif — jangan dijalankan sebagian.
 
 ## Pointers
 
