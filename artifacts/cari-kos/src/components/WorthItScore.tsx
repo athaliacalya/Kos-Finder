@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { customFetch } from "@workspace/api-client-react"
-import { ChevronDown, ChevronUp, Star } from "lucide-react"
+import { Banknote, ChevronDown, ChevronUp, Home, MapPin, ShieldCheck, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -55,15 +55,24 @@ function scoreBarColor(score: number): string {
   return "bg-rose-400"
 }
 
-function factorIcon(key: string): string {
-  const icons: Record<string, string> = {
-    harga: "💰",
-    fasilitas: "🏠",
-    lokasi: "📍",
-    keamanan: "🔒",
-    rating: "⭐",
-  }
-  return icons[key] ?? "•"
+const FACTOR_ICONS: Record<string, React.ReactNode> = {
+  harga:     <Banknote  className="w-4 h-4 shrink-0" />,
+  fasilitas: <Home      className="w-4 h-4 shrink-0" />,
+  lokasi:    <MapPin    className="w-4 h-4 shrink-0" />,
+  keamanan:  <ShieldCheck className="w-4 h-4 shrink-0" />,
+  rating:    <Star      className="w-4 h-4 shrink-0" />,
+}
+
+function FactorIcon({ factorKey, score }: { factorKey: string; score: number }) {
+  const colorClass =
+    score >= 80 ? "text-emerald-500" :
+    score >= 60 ? "text-amber-500"   :
+    score >= 40 ? "text-orange-500"  : "text-rose-500"
+  return (
+    <span className={cn("flex items-center justify-center", colorClass)}>
+      {FACTOR_ICONS[factorKey]}
+    </span>
+  )
 }
 
 // ─── Score ring (SVG) ─────────────────────────────────────────────────────────
@@ -114,7 +123,7 @@ function FactorRow({ factorKey, factor }: { factorKey: string; factor: FactorDet
     <div className="space-y-1.5">
       <div className="flex items-center justify-between text-sm gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-base leading-none select-none">{factorIcon(factorKey)}</span>
+          <FactorIcon factorKey={factorKey} score={factor.score} />
           <span className="font-semibold truncate">{factor.label}</span>
           <span className="text-xs text-muted-foreground shrink-0">
             ({Math.round(factor.weight * 100)}%)
@@ -277,7 +286,7 @@ export default function WorthItScore({ kosId }: { kosId: number }) {
               const f = data.factors[key]
               return (
                 <div key={key} className="flex items-center justify-between gap-2 font-mono">
-                  <span>{factorIcon(key)} {f.label}</span>
+                  <span className="flex items-center gap-1.5"><FactorIcon factorKey={key} score={f.score} />{f.label}</span>
                   <span>
                     {f.score} × {Math.round(f.weight * 100)}% ={" "}
                     <strong className="text-foreground">+{Math.round(f.score * f.weight)}</strong>
