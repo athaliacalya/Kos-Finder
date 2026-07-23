@@ -1,6 +1,7 @@
 import { useLocation, useSearch } from "wouter"
 import { 
-  useListKos, 
+  useListKos,
+  getListKosQueryKey,
   useListKosTrending, 
   useListKosBestValue, 
   useListKosBudgetFriendly, 
@@ -29,7 +30,7 @@ export default function Home() {
   // Use all requested hooks
   const { data: searchResults, isLoading: isLoadingSearch } = useListKos(
     { kota, universitas, budget_max },
-    { query: { enabled: hasSearch } }
+    { query: { enabled: hasSearch, queryKey: getListKosQueryKey({ kota, universitas, budget_max }) } }
   );
 
   const { data: trending, isLoading: isLoadingTrending } = useListKosTrending({ limit: 10 });
